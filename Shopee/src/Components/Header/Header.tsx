@@ -1,6 +1,6 @@
 import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import Popover from '../Popover'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import { useContext } from 'react'
 import { AppContext } from 'src/Contexts/app.context'
@@ -10,9 +10,14 @@ import { useForm } from 'react-hook-form'
 import { schema, Schema } from 'src/utils/rule'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { omit } from 'lodash'
+import { purchaseStatus } from 'src/constants/purchase'
+import purchaseApi from 'src/apis/purchase.api'
+import { formatCurrency } from 'src/utils/utils'
 type FormData = Pick<Schema, 'name'>
 
 const nameSchema = schema.pick(['name'])
+
+const MaxPurchase = 5
 export default function Header() {
   const queryConfig = useQueryConfig()
   const navigate = useNavigate()
@@ -31,6 +36,16 @@ export default function Header() {
       setProfile(null)
     }
   })
+  // Khi chung ta chuyen trang thi header thi bi rerender chu k bi unmount = mounting again
+  //(Tat nhien la tru truong hop logout r nhay sang registerlayout r nhay lai)
+  //nen cac query nay se ko bi irective => ko bi goi lai => k can thiet phai set stale: infinitive
+  const { data: purchasesInCartData } = useQuery({
+    queryKey: ['purchases', { status: purchaseStatus.inCart }],
+    queryFn: () => purchaseApi.getPurchases({ status: purchaseStatus.inCart })
+  })
+
+  const purchasesInCart = purchasesInCartData?.data.data
+
   const hanleLogout = () => {
     logoutMutation.mutate()
   }
@@ -181,59 +196,52 @@ export default function Header() {
             <Popover
               renderPopover={
                 <div className='bg-white relative shadow-md rounded-sm border boder-gray-200 max-w-[400px] text-sm'>
-                  <div className='p-2'>
-                    <div className='text-gray-400 capitalize'>
-                      San pham moi them
-                      <div className='mt-5'>
-                        {/* sp1 */}
-                        <div className='mt-4 flex'>
-                          <div className='flex-shrink-0'>
-                            <img
-                              src='https://down-vn.img.susercontent.com/file/baf01bb7fe474e0559a8df0f1f9b47d6_tn'
-                              alt='anh'
-                              className='w-11 h-11 object-cover'
-                            />
-                          </div>
-                          <div className='flex-grow ml-2 overflow-hidden'>
-                            <div className='truncate'>
-                              Bao Vợt Cầu Lông - Kích thước sản phẩm: 70x 32 x 16 cm - nhiều màu
-                            </div>
-                          </div>
-                          <div className='ml-2 flex-shrink-0'>
-                            <span className='text-orange'>₫145.000</span>
-                          </div>
+                  {purchasesInCart ? (
+                    <div className='p-2'>
+                      <div className='text-gray-400 capitalize'>
+                        San pham moi them
+                        <div className='mt-5'>
+                          {purchasesInCart.slice(0, MaxPurchase).map((purchase) => {
+                            return (
+                              <div className='mt-2 p-2 flex hover:bg-gray-100' key={purchase._id}>
+                                <div className='flex-shrink-0'>
+                                  <img
+                                    src={purchase.product.image}
+                                    alt={purchase.product.name}
+                                    className='w-11 h-11 object-cover'
+                                  />
+                                </div>
+                                <div className='flex-grow ml-2 overflow-hidden'>
+                                  <div className='truncate'>{purchase.product.name}</div>
+                                </div>
+                                <div className='ml-2 flex-shrink-0'>
+                                  <span className='text-orange'>₫{formatCurrency(purchase.product.price)}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
-                        {/* sp2 */}
-                        <div className='mt-4 flex'>
-                          <div className='flex-shrink-0'>
-                            <img
-                              src='https://down-vn.img.susercontent.com/file/baf01bb7fe474e0559a8df0f1f9b47d6_tn'
-                              alt='anh'
-                              className='w-11 h-11 object-cover'
-                            />
+                        <div className='flex mt-6 items-center justify-between'>
+                          <div className='capitalize text-xs text-gray-500'>
+                            {purchasesInCart.length > MaxPurchase ? purchasesInCart.length - MaxPurchase : ''} Them vao
+                            gio hang
                           </div>
-                          <div className='flex-grow ml-2 overflow-hidden'>
-                            <div className='truncate'>
-                              Bao Vợt Cầu Lông - Kích thước sản phẩm: 70x 32 x 16 cm - nhiều màu
-                            </div>
-                          </div>
-                          <div className='ml-2 flex-shrink-0'>
-                            <span className='text-orange'>₫145.000</span>
-                          </div>
+                          <button className='capitalize bg-orange hover:bg-opacity-90 px-4 py-2 rounded-sm text-white'>
+                            xem gio hang
+                          </button>
                         </div>
-                      </div>
-                      <div className='flex mt-6 items-center justify-between'>
-                        <div className='capitalize text-xs text-gray-500'>them hang vao gio</div>
-                        <button className='capitalize bg-orange hover:bg-opacity-90 px-4 py-2 rounded-sm text-white'>
-                          xem gio hang
-                        </button>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className='p-2 w-[300px] h-[300px] flex items-center justify-center'>
+                      <img src='' alt='no purchase' className='h-24 w-24' />
+                      <div className='mt-3 capitalize'>Chua co san pham</div>
+                    </div>
+                  )}
                 </div>
               }
             >
-              <Link to='/'>
+              <Link to='/' className='relative'>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   fill='none'
@@ -248,6 +256,9 @@ export default function Header() {
                     d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'
                   />
                 </svg>
+                <span className='absolute top-[-5px] left-[17px] rounded-full px-[9px] py-[1px] bg-white text-orange text-xs '>
+                  {purchasesInCart?.length}
+                </span>
               </Link>
             </Popover>
           </div>

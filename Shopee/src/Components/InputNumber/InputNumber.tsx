@@ -11,12 +11,12 @@ import { forwardRef, InputHTMLAttributes } from 'react'
 //   rules?: RegisterOptions
 //   autoComplete?: string
 // }
-interface Props extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputNumberProps extends InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
   classNameInput?: string
   classNameError?: string
 }
-const InputNumber = forwardRef<HTMLInputElement, Props>(function InputNumberInner(
+const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(function InputNumberInner(
   {
     errorMessage,
     className,

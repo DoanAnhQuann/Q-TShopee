@@ -15,7 +15,8 @@ export default function ProductList() {
     queryFn: () => {
       return productApi.getProducts(queryConfig as ProductListConfig)
     },
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 3 * 60 * 1000
   })
   const { data: CategoriesData } = useQuery({
     queryKey: ['categories'],
@@ -29,7 +30,6 @@ export default function ProductList() {
         {ProductsData && (
           <div className='grid grid-cols-12 gap-6'>
             <div className='col-span-3'>
-              {' '}
               <AsideFilter queryConfig={queryConfig} categories={CategoriesData?.data.data || []} />
             </div>
             <div className='col-span-9'>

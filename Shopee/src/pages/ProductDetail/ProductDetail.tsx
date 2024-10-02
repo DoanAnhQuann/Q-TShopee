@@ -1,14 +1,19 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import DOMPurify from 'dompurify'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import productApi from 'src/apis/product.api'
-import InputNumber from 'src/Components/InputNumber'
 import ProductRating from 'src/Components/ProductRating'
 import { ProductListConfig } from 'src/types/product.type'
 import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from 'src/utils/utils'
-
+import Product from '../ProductList/Product'
+import QuantityController from 'src/Components/QuantityController'
+import purchaseApi from 'src/apis/purchase.api'
+import { queryClient } from 'src/main'
+import { purchaseStatus } from 'src/constants/purchase'
+import { toast } from 'react-toastify'
 export default function ProductDetail() {
+  const [buyCount, setBuyCount] = useState(1)
   const { nameId } = useParams()
   const id = getIdFromNameId(nameId as string)
   const [currentIndexImages, setCurrentIndexImages] = useState([0, 5])
@@ -24,21 +29,24 @@ export default function ProductDetail() {
     [product, currentIndexImages]
   )
 
-  const queryConfig = { limit: '20', page: '1', category: product?.category._id }
+  const queryConfig: ProductListConfig = { limit: '20', page: '1', category: product?.category._id }
   const { data: productsData } = useQuery({
-    queryKey: ['product', queryConfig],
+    queryKey: ['products', queryConfig],
     queryFn: () => {
-      productApi.getProducts(queryConfig as ProductListConfig)
+      return productApi.getProducts(queryConfig)
     },
     enabled: Boolean(product),
     staleTime: 3 * 60 * 1000
   })
-  console.log(productsData)
   useEffect(() => {
     if (product && product.images.length > 0) {
       setActiveImage(product.images[0])
     }
   }, [product])
+
+  const addToCartMutation = useMutation({
+    mutationFn: (body: { product_id: string; buy_count: number }) => purchaseApi.addToCart(body)
+  })
 
   const chooseActive = (img: string) => {
     setActiveImage(img)
@@ -84,6 +92,22 @@ export default function ProductDetail() {
 
   const handleRemoveZoom = () => {
     imageRef.current?.removeAttribute('style')
+  }
+
+  const handleBuyCount = (value: number) => {
+    setBuyCount(value)
+  }
+
+  const addToCart = () => {
+    addToCartMutation.mutate(
+      { product_id: product?._id as string, buy_count: buyCount },
+      {
+        onSuccess: (data) => {
+          toast.success(data.data.message, { autoClose: 1000 })
+          queryClient.invalidateQueries({ queryKey: ['purchases', { status: purchaseStatus.inCart }] })
+        }
+      }
+    )
   }
 
   if (!product) return null
@@ -177,42 +201,20 @@ export default function ProductDetail() {
               </div>
               <div className='mt-8 flex items-center'>
                 <div className='capitalize text-gray-500'>Số lượng</div>
-                <div className='ml-10 flex items-center '>
-                  <button className='flex h-8 w-8 items-center justify-center rounded-l-sm border border-gray-300 text-gray-600'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      strokeWidth={1.5}
-                      stroke='currentColor'
-                      className='h-4 w-4'
-                    >
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M5 12h14' />
-                    </svg>
-                  </button>
-                  <InputNumber
-                    value={1}
-                    className=''
-                    classNameError='hidden'
-                    classNameInput='h-8 w-14 border-t border-b border-gray-300 p-1 text-center outline-none'
-                  />
-                  <button className='flex h-8 w-8 items-center justify-center rounded-r-sm border border-gray-300 text-gray-600'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      strokeWidth={1.5}
-                      stroke='currentColor'
-                      className='h-4 w-4'
-                    >
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
-                    </svg>
-                  </button>
-                </div>
+                <QuantityController
+                  onDecrease={handleBuyCount}
+                  onIncrease={handleBuyCount}
+                  onType={handleBuyCount}
+                  value={buyCount}
+                  max={product.quantity}
+                />
                 <div className='ml-6 text-sm text-gray-500'>{product.quantity} Sản phẩm có sẵn</div>
               </div>
               <div className='mt-8 flex items-center'>
-                <button className='flex h-12 items-center justify-center rounded-sm border border-orange bg-orange/10 px-5 capitalize text-orange shadow-sm hover:bg-orange/5'>
+                <button
+                  onClick={addToCart}
+                  className='flex h-12 items-center justify-center rounded-sm border border-orange bg-orange/10 px-5 capitalize text-orange shadow-sm hover:bg-orange/5'
+                >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -248,6 +250,20 @@ export default function ProductDetail() {
               }}
             ></div>
           </div>
+        </div>
+      </div>
+      <div className='mt-8'>
+        <div className='container'>
+          <div className='uppercase text-gray-400'>CÓ THỂ BẠN CŨNG THÍCH</div>
+          {productsData && (
+            <div className='mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+              {productsData.data.data.products.map((product) => (
+                <div className='col-span-1' key={product._id}>
+                  <Product product={product} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
