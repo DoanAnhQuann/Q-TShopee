@@ -46,9 +46,11 @@ export default function Header() {
 
   const purchasesInCart = purchasesInCartData?.data.data
 
+  console.log(purchasesInCart)
   const hanleLogout = () => {
     logoutMutation.mutate()
   }
+
 
   const onSubmitSearch = handleSubmit((data) => {
     const config = queryConfig.order
