@@ -18,7 +18,7 @@ export default function QuantityController({
   value,
   ...rest
 }: Props) {
-  //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung 
+  //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung
   const [localValue, setLocalValue] = useState<number>(Number(value) || 0)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let _value = Number(event.target.value)
@@ -32,7 +32,7 @@ export default function QuantityController({
   }
 
   const increase = () => {
-    //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung 
+    //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung
     let _value = Number(value || localValue) + 1
     if (max !== undefined && _value > max) {
       _value = max
@@ -42,7 +42,7 @@ export default function QuantityController({
   }
 
   const decrease = () => {
-    //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung 
+    //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung
     let _value = Number(value || localValue) - 1
     if (_value < 1) {
       _value = 1
@@ -69,7 +69,7 @@ export default function QuantityController({
       </button>
       <InputNumber
         onChange={handleChange}
-        //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung 
+        //su dung khi nguoi dung k can truyefn day du prop onchage value thi van hoat dong dung
         value={value || localValue}
         className=''
         classNameError='hidden'

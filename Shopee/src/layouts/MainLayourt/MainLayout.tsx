@@ -1,4 +1,3 @@
-import { Children } from 'react'
 import Footer from 'src/Components/Footer'
 import Header from 'src/Components/Header'
 interface Props {

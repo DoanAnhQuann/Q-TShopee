@@ -24,7 +24,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         isAuthenticated,
         setIsAuthenticated,
-        profile, 
+        profile,
         setProfile
       }}
     >
