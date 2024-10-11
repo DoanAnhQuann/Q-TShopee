@@ -10,7 +10,9 @@ import { AppProvider } from './Contexts/app.context'
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      //ko bao lap lai loi lien tuc
+      retry: 0
     }
   }
 })

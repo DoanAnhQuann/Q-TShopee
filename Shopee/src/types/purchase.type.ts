@@ -1,4 +1,4 @@
-import { Product } from "./product.type"
+import { Product } from './product.type'
 
 export type PurchaseStatus = -1 | 1 | 2 | 3 | 4 | 5
 
@@ -14,4 +14,9 @@ export interface Purchase {
   product: Product
   createdAt: string
   updateAt: string
+}
+
+export interface ExtendedPurchase extends Purchase {
+  disabled: boolean
+  checked: boolean
 }

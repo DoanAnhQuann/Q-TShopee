@@ -13,7 +13,7 @@ export default function CartHeader() {
       </div>
       <div className='bg-white py-6'>
         <div className='container'>
-          <nav className='md:flex md:items-center md:justify-center'>
+          <nav className='md:flex md:items-center md:justify-between'>
             <Link to={path.home} className='flex flex-shrink-0 items-end'>
               <div>
                 <svg viewBox='0 0 192 65' className='h-8 md:h-11 fill-orange'>

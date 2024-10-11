@@ -55,6 +55,13 @@ class Http {
           console.log(error)
           toast.error(message)
         }
+        //xu li khi accesstoken het han khi ma loi 401 xoa accessToken va profile localstore
+        if (error.response?.status === HttpStatusCode.Unauthorized) {
+          clearLS()
+          //sau khi ma loi xay ra clear va cu phap nay dung de f5
+          //c1
+          // window.location.reload()
+        }
         return Promise.reject(error)
       }
     )
